@@ -56,6 +56,7 @@ Ensure your IDE or Spring Boot reads environment variables from .env.
 To start the application, use the following command:
 
 mvn spring-boot:run
+
 The application will be accessible at http://localhost:8080 by default.
 
 Running Tests
