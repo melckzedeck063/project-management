@@ -205,6 +205,10 @@ public class AuthServiceImpl implements AuthService {
                 else if (userAccountDto.getUserRole().equalsIgnoreCase(UserType.SUPER_ADMIN.name()))
                     userAccount1.setUserType(String.valueOf(UserType.SUPER_ADMIN));
 
+                else if (userAccountDto.getUserRole().equalsIgnoreCase(UserType.MANAGER.name()))
+                    userAccount1.setUserType(String.valueOf(UserType.MANAGER));
+
+
                 if(userAccount1.getPassword() == null){
                     userAccount1.setPassword(passwordEncoder.encode(userAccountDto.getLastName().toUpperCase().trim()));
                 }

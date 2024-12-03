@@ -24,7 +24,7 @@ public class TaskController {
     private TaskService taskService;
 
     @PostMapping("/projects/{id}/tasks")
-    @PreAuthorize("hasAuthority('manager:create') or hasAuthority('admin:create')")
+    @PreAuthorize("hasAuthority('manager:create')")
     public ResponseEntity<?> addTask( @PathVariable(value = "id") Long projectId, @RequestBody TaskDto taskDto) {
         Response<Task> response =  taskService.addTask(projectId,taskDto);
         return ResponseEntity.ok().body(response);
@@ -39,7 +39,7 @@ public class TaskController {
     }
 
     @PutMapping("/tasks/{id}")
-    @PreAuthorize("hasAnyAuthority('manager:update') or hasAnyAuthority('admin:update')")
+    @PreAuthorize("hasAnyAuthority('manager:update')")
     public ResponseEntity<?> updateTask(@PathVariable(value = "id") Long projectId, @RequestBody TaskDto taskDto) {
         Response<Task> response = taskService.updateTask(projectId,taskDto);
         return ResponseEntity.ok().body(response);
