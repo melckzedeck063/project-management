@@ -68,7 +68,6 @@ public class TaskServiceImpl implements TaskService {
                     throw new ResourceNotFoundException("Project not found");
                 }
                 project.ifPresent(task::setProject_id);
-
             }
             else
                 throw new IllegalArgumentException("Project id cannot be empty");
