@@ -4,9 +4,12 @@ import com.zedeck.projectmanagement.dtos.TaskDto;
 import com.zedeck.projectmanagement.models.Task;
 import com.zedeck.projectmanagement.service.TaskService;
 import com.zedeck.projectmanagement.utils.Response;
+import com.zedeck.projectmanagement.utils.ResponseCode;
+import com.zedeck.projectmanagement.utils.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -63,6 +66,9 @@ public class TaskController {
     @GetMapping("/tasks/filter")
     public ResponseEntity<?> searchTask(@RequestParam String name, @RequestParam String status) {
         List<Task> response =  taskService.filterTasks(name, status);
+        if (response.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No tasks found matching the criteria.");
+        }
         return ResponseEntity.ok().body(response);
     }
 

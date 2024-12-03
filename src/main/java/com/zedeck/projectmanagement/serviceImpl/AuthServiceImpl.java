@@ -193,8 +193,12 @@ public class AuthServiceImpl implements AuthService {
                     userAccount1.setLastName(userAccountDto.getLastName());
 
                 if(!userAccountDto.getUsername().isBlank() && !Objects.equals(userAccountDto.getUsername(), userAccount1.getUsername()))
-                    userAccount1.setUsername(userAccountDto.getUsername());
-
+                    if(!isValidEmail(userAccountDto.getUsername())){
+                        throw new IllegalAccessException("Invalid email");
+                    }
+                    else {
+                        userAccount1.setUsername(userAccountDto.getUsername());
+                    }
                 if(userAccountDto.getUserRole() == null){
                     userAccount1.setUserType(String.valueOf(UserType.USER));
                 }

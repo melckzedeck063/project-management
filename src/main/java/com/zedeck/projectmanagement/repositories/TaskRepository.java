@@ -1,6 +1,5 @@
 package com.zedeck.projectmanagement.repositories;
 
-import com.zedeck.projectmanagement.dtos.DashboardDto;
 import com.zedeck.projectmanagement.models.Task;
 import com.zedeck.projectmanagement.utils.Status;
 import org.springframework.data.domain.Page;
@@ -23,7 +22,7 @@ public interface TaskRepository extends JpaRepository<Task,Long> {
 
     Long countAllByDeletedFalse();
 
-    @Query("SELECT t FROM Task t WHERE t.name = :name OR t.status = :status")
+    @Query("SELECT t FROM Task t WHERE t.name = :name OR t.status = CAST(:status AS string)")
     List<Task> findByNameOrStatus(@Param("name") String name, @Param("status") String status);
 
 

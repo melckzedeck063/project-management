@@ -30,6 +30,7 @@ public class Task extends BaseEntity implements Serializable {
     @JoinColumn(name = "assigneeId", referencedColumnName = "id")
     private UserAccount assignee_id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;
 }

@@ -13,11 +13,13 @@ import com.zedeck.projectmanagement.service.TaskService;
 import com.zedeck.projectmanagement.utils.Response;
 import com.zedeck.projectmanagement.utils.ResponseCode;
 import com.zedeck.projectmanagement.utils.Status;
+import com.zedeck.projectmanagement.utils.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -60,9 +62,16 @@ public class TaskServiceImpl implements TaskService {
 
             task.setStatus(Status.Pending);
 
-            Optional<Project> project = projectRepository.findById(projectId);
-            project.ifPresent(task::setProject_id);
+            if(projectId != null || projectId.equals("")){
+                Optional<Project> project = projectRepository.findById(projectId);
+                if(project.isEmpty()){
+                    throw new ResourceNotFoundException("Project not found");
+                }
+                project.ifPresent(task::setProject_id);
 
+            }
+            else
+                throw new IllegalArgumentException("Project id cannot be empty");
 
             Task task1 =  taskRepository.save(task);
 
@@ -132,8 +141,9 @@ public class TaskServiceImpl implements TaskService {
                 emailService.sendEmail(new EmailDto("melckzedeck063@gmail.com", "Task notification","Task assigned successfully"));
                 return new Response<>(false,ResponseCode.SUCCESS,task1,"Task assigned successfully");
             }
-
-            return new Response<>(true,ResponseCode.NO_RECORD_FOUND,"No task record found");
+            else {
+                throw new ResourceNotFoundException("Task not found");
+            }
         }
         catch (Exception e){
             e.printStackTrace();
@@ -153,6 +163,10 @@ public class TaskServiceImpl implements TaskService {
 
                 emailService.sendEmail(new EmailDto("melckzedeck063@gmail.com", "Task notification","Task marked as completed"));
                 return new Response<>(false,ResponseCode.SUCCESS,task1,"Task completed successfully");
+            }
+
+            else {
+                throw new ResourceNotFoundException("Task not found");
             }
         }
         catch (Exception e){
@@ -182,14 +196,21 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> filterTasks(String name, String status) {
         try {
-            List<Task> taskPage =  taskRepository.findByNameOrStatus(name, status);
+            Status enumStatus = null;
+            if ("completed".equalsIgnoreCase(status.toString())) {
+                enumStatus = Status.Completed;
+            } else if ("in-progress".equalsIgnoreCase(status.toString())) {
+                enumStatus = Status.In_Progress;
+            } else if ("pending".equalsIgnoreCase(status.toString())) {
+                enumStatus = Status.Pending;
+            }
 
-            return taskPage;
-        }
-        catch (Exception e){
+            assert enumStatus != null;
+            return taskRepository.findByNameOrStatus(name,enumStatus.toString());
+        } catch (Exception e) {
             e.printStackTrace();
+            return Collections.emptyList();
         }
-        return null;
     }
 
 
