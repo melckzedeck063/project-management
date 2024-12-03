@@ -57,7 +57,13 @@ To start the application, use the following command:
 
 mvn spring-boot:run
 
+
+
 The application will be accessible at http://localhost:8080 by default.
+
+to access swagger ui 
+replace {PORT} with the actual port
+http://localhost:{PORT}/swagger-ui/index.html
 
 Running Tests
 To run unit and integration tests, execute:
