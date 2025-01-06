@@ -17,5 +17,10 @@ public interface AuthService {
 
     Response<UserAccount> getProfile();
 
+    Response<UserAccount> revokeAllUserTokens(UserAccount user);
+
+    Response<UserAccount> logoutUser();
+
+
 }
 

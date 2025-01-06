@@ -3,11 +3,14 @@ import com.zedeck.projectmanagement.dtos.LoginDto;
 import com.zedeck.projectmanagement.dtos.LoginResponseDto;
 import com.zedeck.projectmanagement.dtos.UserAccountDto;
 import com.zedeck.projectmanagement.jwt.JWTUtils;
+import com.zedeck.projectmanagement.models.Token;
 import com.zedeck.projectmanagement.models.UserAccount;
+import com.zedeck.projectmanagement.repositories.TokenRepository;
 import com.zedeck.projectmanagement.repositories.UserAccountRepository;
 import com.zedeck.projectmanagement.service.AuthService;
 import com.zedeck.projectmanagement.utils.Response;
 import com.zedeck.projectmanagement.utils.ResponseCode;
+import com.zedeck.projectmanagement.utils.TokenType;
 import com.zedeck.projectmanagement.utils.UserType;
 import com.zedeck.projectmanagement.utils.userextractor.LoggedUser;
 import jakarta.validation.constraints.NotNull;
@@ -24,12 +27,11 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.zedeck.projectmanagement.models.Token.*;
 
 @Service
 @Slf4j
@@ -47,12 +49,14 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private LoggedUser loggedUser;
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
+
     private Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Autowired
     private JWTUtils jwtUtils;
-
-
 
     @Override
     public Response<LoginResponseDto> login(LoginDto loginDto) {
@@ -70,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
 
             if(accountOptional.isEmpty())
                 return new Response<>(true,ResponseCode.FAIL,"Login request failed");
-
+            saveUserTokens(accountOptional.get(), jwtToken);
             return getLoginResponseResponse(accountOptional, jwtToken, refreshToken);
 
         }catch (Exception e){
@@ -242,6 +246,38 @@ public class AuthServiceImpl implements AuthService {
         return new Response<>(true,ResponseCode.FAIL,"Failed to get profile");
     }
 
+    @Override
+    public Response<UserAccount> revokeAllUserTokens(UserAccount user) {
+        Optional<UserAccount> accountOptional =  accountRepository.findFirstByUuid(user.getUuid());
+
+        if (accountOptional.isPresent()){
+            UserAccount account =  accountOptional.get();
+            List<Token> validTokens =  tokenRepository.findAllValidTokenByUser(account.getId());
+            if (validTokens.isEmpty())
+                return new Response<>(true,ResponseCode.NO_RECORD_FOUND,"User tokens not found");
+
+            validTokens.forEach(token -> {
+                token.setExpired(true);
+                token.setRevoked(true);
+            });
+
+            tokenRepository.saveAll(validTokens);
+
+            return new Response<>(false, ResponseCode.SUCCESS, account, "User tokens revoked");
+        }
+        return new Response<>(true,ResponseCode.FAIL,"Failed to revoke user tokens");
+    }
+
+    @Override
+    public Response<UserAccount> logoutUser() {
+        UserAccount user =  loggedUser.getUser();
+
+        if(user == null)
+            return new Response<>(true,ResponseCode.UNAUTHORIZED,"Unauthorized");
+
+
+        return null;
+    }
 
 
     private boolean isValidEmail(String emailStr) {
@@ -249,6 +285,19 @@ public class AuthServiceImpl implements AuthService {
                 Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(emailStr);
         return matcher.find();
+    }
+
+    private void saveUserTokens(UserAccount userAccount, String jwtToken){
+        var token = Token.builder()
+                .user(userAccount)
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .expired(false)
+                .revoked(false)
+                .build();
+
+        tokenRepository.save(token);
+        System.out.println("Token saved successfully");
     }
 
 

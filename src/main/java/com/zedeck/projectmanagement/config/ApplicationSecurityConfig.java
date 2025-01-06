@@ -1,6 +1,8 @@
 package com.zedeck.projectmanagement.config;
 import com.zedeck.projectmanagement.jwt.AuthTokenFilter;
+import com.zedeck.projectmanagement.service.LogoutService;
 import com.zedeck.projectmanagement.userDetailService.UserDetailsServiceImpl;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,15 +16,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 
 @Configuration
 @EnableWebSecurity
+@AllArgsConstructor
 @EnableMethodSecurity(prePostEnabled = true)
 public class ApplicationSecurityConfig {
 
@@ -31,6 +36,11 @@ public class ApplicationSecurityConfig {
 
     @Autowired
     private AuthenticationEntryPoint unauthorizedHandler;
+
+    @Autowired
+    private LogoutService logoutService;
+
+    private final LogoutHandler logoutHandler;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter(){
@@ -47,6 +57,7 @@ public class ApplicationSecurityConfig {
                         .requestMatchers(
                                 "/api/login",
                                 "/api/register",
+                                "/api/logout",
                                 "/v2/api-docs",
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
@@ -60,7 +71,13 @@ public class ApplicationSecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+//                .logout(logout -> logout.logoutUrl("/api/logout")
+//                        .addLogoutHandler(logoutHandler)
+//
+//                        .logoutSuccessHandler(((request, response, authentication) -> SecurityContextHolder.clearContext()))
+//    )
+    ;
         return http.build();
     }
 

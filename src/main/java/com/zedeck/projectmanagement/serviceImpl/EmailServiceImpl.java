@@ -23,7 +23,6 @@ public class EmailServiceImpl implements EmailService {
         this.javaMailSender = javaMailSender;
     }
 
-
     @Override
     public Response<EmailDto> sendEmail(EmailDto emailDto) {
         MimeMessage message = javaMailSender.createMimeMessage();
@@ -37,7 +36,6 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(emailDto.getRecipient());
             helper.setSubject(emailDto.getSubject());
             helper.setText(emailDto.getBody(), true);
-
             javaMailSender.send(message);
 
             System.out.println("Email sent successfully to: " + emailDto.getRecipient());
@@ -46,7 +44,6 @@ public class EmailServiceImpl implements EmailService {
             System.out.println("Failed to send email. Error: " + e.getMessage());
             e.printStackTrace();
             return new Response<>(true, ResponseCode.FAIL, "Failed to send email. Check logs for details.");
-
         }
 
     }
